@@ -11,7 +11,8 @@ api_key = os.getenv("GROQ_API_KEY")
 
 app = Flask(__name__)
 app.secret_key = "secret123"
-conn = mysql.connector.connect(
+def get_db():
+    return mysql.connector.connect(
     host=os.getenv("DB_HOST"),
     user=os.getenv("DB_USER"),
     password=os.getenv("DB_PASSWORD"),
@@ -19,6 +20,7 @@ conn = mysql.connector.connect(
     port=int(os.getenv("DB_PORT",3306)),
     ssl_disabled=False
 )
+conn=get_db()
 print("Connected to MySQL ✅")
 
 cur = conn.cursor()
@@ -49,6 +51,8 @@ def signup():
             (username, password, city, age)
         )
         conn.commit()
+        cur.close()
+        conn.close()
 
         print("Data inserted in MySQL ✅")
 
@@ -58,6 +62,8 @@ def signup():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    conn = get_db()
+    cur = conn.cursor()
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
@@ -75,6 +81,9 @@ def login():
             return "Invalid credentials ❌"
 
     return render_template("login.html")
+    cur.close()
+    conn.close()
+
 
 
 @app.route("/logout")
