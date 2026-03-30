@@ -1,4 +1,5 @@
 flask
 gunicorn
 groq
-mysql
+mysql-connector-python
+python-dotenv
