@@ -40,6 +40,8 @@ def home():
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
+    conn = get_db()
+    cur = conn.cursor()
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
@@ -59,6 +61,8 @@ def signup():
         return redirect("/login")
 
     return render_template("signup.html")
+    cur.close()
+    conn.close()
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
