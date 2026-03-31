@@ -95,7 +95,9 @@ def logout():
     session.pop("user", None)
     return redirect(url_for("login"))
 
-
+@app.route('/tutorial')
+def tutorial():
+    return render_template('tutorial.html')
 
 @app.route("/generate", methods=["POST"])
 def generate():
