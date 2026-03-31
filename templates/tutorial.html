@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>How to Use AckoAI — Build Websites with AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet" />
+<style>
+  /* ── RESET & TOKENS ─────────────────────────────────────────── */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --void:    #05070D;
+    --deep:    #0A0F1E;
+    --card:    #0F172A;
+    --border:  #1E293B;
+    --violet:  #7C3AED;
+    --violet2: #A78BFA;
+    --cyan:    #06B6D4;
+    --lime:    #84CC16;
+    --red:     #EF4444;
+    --white:   #F8FAFC;
+    --muted:   #64748B;
+    --light:   #CBD5E1;
+    --mono:    'Space Mono', monospace;
+    --sans:    'Outfit', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--void);
+    color: var(--white);
+    font-family: var(--sans);
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ── CUSTOM CURSOR ─────────────────────────────────────────── */
+  .cursor {
+    position: fixed; top: 0; left: 0; pointer-events: none;
+    z-index: 9999; mix-blend-mode: difference;
+  }
+  .cursor-dot {
+    width: 8px; height: 8px; background: var(--cyan);
+    border-radius: 50%; position: absolute; transform: translate(-50%,-50%);
+    transition: transform .1s;
+  }
+  .cursor-ring {
+    width: 36px; height: 36px; border: 1.5px solid var(--violet2);
+    border-radius: 50%; position: absolute; transform: translate(-50%,-50%);
+    transition: transform .18s cubic-bezier(.16,1,.3,1), width .2s, height .2s;
+  }
+  body:hover .cursor-ring { transform: translate(-50%,-50%) scale(1); }
+
+  /* ── NOISE OVERLAY ─────────────────────────────────────────── */
+  body::before {
+    content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    opacity: .4;
+  }
+
+  /* ── PROGRESS BAR ──────────────────────────────────────────── */
+  #progress {
+    position: fixed; top: 0; left: 0; height: 2px; width: 0%;
+    background: linear-gradient(90deg, var(--violet), var(--cyan));
+    z-index: 1000; transition: width .1s;
+    box-shadow: 0 0 10px var(--cyan);
+  }
+
+  /* ── NAV ───────────────────────────────────────────────────── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between;
+    background: rgba(5,7,13,.8); backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(124,58,237,.2);
+  }
+  .nav-logo {
+    font-family: var(--mono); font-size: 1.1rem; font-weight: 700;
+    color: var(--white); letter-spacing: -.02em;
+  }
+  .nav-logo span { color: var(--violet2); }
+  .nav-cta {
+    background: var(--violet); color: var(--white); font-family: var(--sans);
+    font-weight: 600; font-size: .85rem; padding: .45rem 1.2rem;
+    border-radius: 6px; text-decoration: none; border: none; cursor: pointer;
+    transition: background .2s, box-shadow .2s;
+  }
+  .nav-cta:hover { background: #6D28D9; box-shadow: 0 0 20px rgba(124,58,237,.5); }
+
+  /* ── SECTIONS ──────────────────────────────────────────────── */
+  section { position: relative; z-index: 1; }
+
+  /* ── HERO ──────────────────────────────────────────────────── */
+  #hero {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    text-align: center; padding: 6rem 2rem 4rem; overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0; pointer-events: none;
+  }
+  .orb {
+    position: absolute; border-radius: 50%; filter: blur(80px); opacity: .25;
+    animation: drift 8s ease-in-out infinite;
+  }
+  .orb1 { width: 600px; height: 600px; background: var(--violet); top: -10%; left: -15%; animation-delay: 0s; }
+  .orb2 { width: 400px; height: 400px; background: var(--cyan); bottom: -5%; right: -10%; animation-delay: 3s; }
+  .orb3 { width: 300px; height: 300px; background: #9333EA; top: 40%; left: 60%; animation-delay: 5s; }
+
+  @keyframes drift {
+    0%,100% { transform: translate(0,0) scale(1); }
+    50%      { transform: translate(20px,30px) scale(1.05); }
+  }
+
+  /* Grid dots */
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image: radial-gradient(circle, rgba(124,58,237,.15) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+  }
+
+  .hero-inner { position: relative; max-width: 860px; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: .5rem;
+    background: rgba(124,58,237,.15); border: 1px solid rgba(124,58,237,.4);
+    padding: .35rem .9rem; border-radius: 100px; font-size: .78rem;
+    font-family: var(--mono); color: var(--violet2); margin-bottom: 2rem;
+    animation: fadeUp .8s .2s both;
+  }
+  .badge-dot { width: 6px; height: 6px; background: var(--cyan); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.7)} }
+
+  h1.hero-title {
+    font-family: var(--sans); font-size: clamp(3rem, 8vw, 6.5rem);
+    font-weight: 900; line-height: .95; letter-spacing: -.04em;
+    margin-bottom: 1.5rem; animation: fadeUp .8s .4s both;
+  }
+  h1.hero-title .line2 { color: var(--violet2); display: block; }
+  h1.hero-title .line3 {
+    background: linear-gradient(90deg, var(--cyan), var(--violet2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    display: block;
+  }
+
+  .hero-sub {
+    font-size: 1.15rem; color: var(--light); max-width: 520px; margin: 0 auto 2.5rem;
+    line-height: 1.7; animation: fadeUp .8s .6s both;
+  }
+  .hero-cta-row {
+    display: flex; align-items: center; justify-content: center; gap: 1rem;
+    flex-wrap: wrap; animation: fadeUp .8s .8s both;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--violet), #9333EA);
+    color: var(--white); font-weight: 700; font-size: 1rem; padding: .85rem 2rem;
+    border-radius: 10px; text-decoration: none; border: none; cursor: pointer;
+    box-shadow: 0 0 30px rgba(124,58,237,.4);
+    transition: transform .2s, box-shadow .2s;
+    display: inline-flex; align-items: center; gap: .5rem;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 50px rgba(124,58,237,.6); }
+  .btn-ghost {
+    background: transparent; color: var(--light); font-weight: 600; font-size: 1rem;
+    padding: .85rem 2rem; border-radius: 10px; text-decoration: none;
+    border: 1px solid var(--border); cursor: pointer;
+    transition: border-color .2s, color .2s;
+    display: inline-flex; align-items: center; gap: .5rem;
+  }
+  .btn-ghost:hover { border-color: var(--violet2); color: var(--violet2); }
+
+  .scroll-hint {
+    position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: .5rem;
+    animation: fadeUp .8s 1.2s both;
+  }
+  .scroll-hint span { font-size: .7rem; font-family: var(--mono); color: var(--muted); letter-spacing: .12em; }
+  .scroll-arrow { width: 20px; height: 32px; border: 1.5px solid var(--muted); border-radius: 10px; position: relative; }
+  .scroll-arrow::after {
+    content: ''; position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+    width: 3px; height: 3px; background: var(--cyan); border-radius: 50%;
+    animation: scrollDot 1.8s infinite;
+  }
+  @keyframes scrollDot { 0%{top:6px;opacity:1} 80%{top:18px;opacity:0} 100%{top:6px;opacity:0} }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── STEP SECTION ──────────────────────────────────────────── */
+  .steps-wrapper {
+    padding: 6rem 2rem; max-width: 1100px; margin: 0 auto;
+  }
+  .section-label {
+    font-family: var(--mono); font-size: .75rem; color: var(--cyan);
+    letter-spacing: .18em; text-transform: uppercase; margin-bottom: .75rem;
+    display: flex; align-items: center; gap: .6rem;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--cyan), transparent); }
+  .section-title {
+    font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; letter-spacing: -.03em;
+    margin-bottom: 1rem; line-height: 1.1;
+  }
+  .section-desc { font-size: 1.05rem; color: var(--light); max-width: 560px; line-height: 1.7; margin-bottom: 3.5rem; }
+
+  /* ── STEP CARD ─────────────────────────────────────────────── */
+  .step-card {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4rem;
+    align-items: center; margin-bottom: 6rem;
+    opacity: 0; transform: translateY(40px);
+    transition: opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1);
+  }
+  .step-card.visible { opacity: 1; transform: translateY(0); }
+  .step-card.reverse { direction: rtl; }
+  .step-card.reverse > * { direction: ltr; }
+
+  .step-visual {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 2.5rem; position: relative; overflow: hidden;
+    min-height: 280px; display: flex; align-items: center; justify-content: center;
+  }
+  .step-visual::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--violet), var(--cyan));
+  }
+  .step-visual::after {
+    content: ''; position: absolute; top: -60px; right: -60px;
+    width: 180px; height: 180px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(124,58,237,.12), transparent 70%);
+  }
+
+  .step-num {
+    position: absolute; top: 1rem; right: 1.2rem;
+    font-family: var(--mono); font-size: .75rem; color: rgba(124,58,237,.5);
+    font-weight: 700; letter-spacing: .1em;
+  }
+
+  .step-text { display: flex; flex-direction: column; gap: 1rem; }
+  .step-index {
+    width: 40px; height: 40px; background: rgba(124,58,237,.15);
+    border: 1px solid rgba(124,58,237,.4); border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-weight: 700; font-size: .9rem; color: var(--violet2);
+  }
+  .step-heading {
+    font-size: 1.65rem; font-weight: 800; letter-spacing: -.03em; line-height: 1.15;
+  }
+  .step-body { font-size: 1rem; color: var(--light); line-height: 1.75; }
+  .step-tag {
+    display: inline-flex; align-items: center; gap: .4rem;
+    background: rgba(6,182,212,.1); border: 1px solid rgba(6,182,212,.3);
+    padding: .3rem .75rem; border-radius: 100px; font-size: .78rem;
+    color: var(--cyan); font-family: var(--mono); align-self: flex-start;
+  }
+
+  /* ── SCENE VISUALS ─────────────────────────────────────────── */
+
+  /* Browser mockup */
+  .browser {
+    width: 100%; background: #0D1117; border-radius: 10px;
+    border: 1px solid var(--border); overflow: hidden; position: relative; z-index: 1;
+  }
+  .browser-bar {
+    background: #161B27; padding: .6rem 1rem;
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .dot-r { width:10px;height:10px;border-radius:50%;background:#EF4444; }
+  .dot-y { width:10px;height:10px;border-radius:50%;background:#F59E0B; }
+  .dot-g { width:10px;height:10px;border-radius:50%;background:#22C55E; }
+  .url-bar {
+    flex: 1; background: #0D1117; border-radius: 6px; padding: .25rem .75rem;
+    font-family: var(--mono); font-size: .7rem; color: var(--muted); margin: 0 .5rem;
+  }
+  .browser-body { padding: 1.2rem; }
+
+  /* Terminal / code block */
+  .terminal {
+    background: #030712; border-radius: 10px; border: 1px solid #1E2D40;
+    padding: 1.2rem; font-family: var(--mono); font-size: .8rem; line-height: 1.8;
+    position: relative; z-index: 1; width: 100%;
+  }
+  .terminal-header {
+    display: flex; gap: .5rem; margin-bottom: 1rem; padding-bottom: .75rem;
+    border-bottom: 1px solid #1E2D40;
+  }
+  .t-dot { width:10px;height:10px;border-radius:50%; }
+  .t-dot:nth-child(1){background:#EF4444}
+  .t-dot:nth-child(2){background:#F59E0B}
+  .t-dot:nth-child(3){background:#22C55E}
+  .t-line { margin-bottom: .2rem; }
+  .t-prompt { color: var(--violet2); }
+  .t-cmd    { color: var(--white); }
+  .t-out    { color: var(--lime); }
+  .t-comment{ color: var(--muted); }
+  .t-cyan   { color: var(--cyan); }
+
+  .cursor-blink {
+    display: inline-block; width: 8px; height: 1em;
+    background: var(--cyan); vertical-align: text-bottom;
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* Prompt box */
+  .prompt-box {
+    width: 100%; position: relative; z-index: 1;
+  }
+  .prompt-label {
+    font-family: var(--mono); font-size: .68rem; color: var(--muted);
+    letter-spacing: .1em; margin-bottom: .5rem; text-transform: uppercase;
+  }
+  .prompt-input {
+    background: #030712; border: 1px solid var(--violet);
+    border-radius: 10px; padding: 1rem 1.2rem;
+    font-family: var(--mono); font-size: .85rem; color: var(--white);
+    line-height: 1.6; box-shadow: 0 0 20px rgba(124,58,237,.15);
+    position: relative;
+  }
+  .prompt-input .typed-text { color: var(--white); }
+  .prompt-cursor { color: var(--cyan); animation: blink 1s step-end infinite; }
+  .prompt-send {
+    margin-top: .75rem; background: var(--violet); color: var(--white);
+    border: none; border-radius: 8px; padding: .6rem 1.4rem;
+    font-family: var(--sans); font-weight: 600; font-size: .85rem;
+    cursor: pointer; display: flex; align-items: center; gap: .5rem;
+    transition: background .2s;
+  }
+  .prompt-send:hover { background: #6D28D9; }
+
+  /* Website result */
+  .website-result {
+    width: 100%; position: relative; z-index: 1;
+  }
+  .site-header {
+    background: linear-gradient(135deg, #1E0A3C, #0A0F2E);
+    border-radius: 10px 10px 0 0; padding: 1rem 1.2rem;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .site-logo { font-weight: 800; font-size: 1rem; color: var(--violet2); }
+  .site-nav { display: flex; gap: .75rem; }
+  .site-nav a {
+    font-size: .7rem; color: var(--light); text-decoration: none;
+    padding: .3rem .6rem; border-radius: 4px; background: rgba(255,255,255,.06);
+  }
+  .site-hero {
+    background: linear-gradient(180deg, #0F0624, #07090F);
+    padding: 2rem 1.2rem; text-align: center;
+  }
+  .site-hero h2 {
+    font-size: 1.3rem; font-weight: 800; color: var(--white); margin-bottom: .5rem;
+  }
+  .site-hero p { font-size: .78rem; color: var(--muted); }
+  .site-btn {
+    display: inline-block; margin-top: .8rem; background: var(--violet);
+    color: var(--white); font-size: .75rem; padding: .4rem 1rem; border-radius: 6px;
+    font-weight: 600;
+  }
+  .site-cards {
+    background: #0A0F1E; padding: 1rem 1.2rem;
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .5rem;
+    border-radius: 0 0 10px 10px;
+  }
+  .site-card {
+    background: var(--card); border-radius: 6px; padding: .75rem;
+    border: 1px solid var(--border);
+  }
+  .site-card-icon { font-size: 1.2rem; margin-bottom: .3rem; }
+  .site-card h4 { font-size: .68rem; color: var(--white); margin-bottom: .2rem; }
+  .site-card p  { font-size: .6rem; color: var(--muted); }
+
+  /* Pills for keywords */
+  .keyword-pills { display: flex; flex-wrap: wrap; gap: .5rem; position: relative; z-index: 1; }
+  .kpill {
+    background: rgba(6,182,212,.1); border: 1px solid rgba(6,182,212,.3);
+    color: var(--cyan); font-family: var(--mono); font-size: .8rem;
+    padding: .4rem .9rem; border-radius: 100px;
+    transition: background .2s, transform .2s;
+  }
+  .kpill:hover { background: rgba(6,182,212,.2); transform: scale(1.05); }
+
+  /* ChatGPT flow */
+  .chatgpt-flow { display: flex; flex-direction: column; gap: .75rem; width: 100%; position: relative; z-index: 1; }
+  .chat-bubble {
+    padding: .75rem 1rem; border-radius: 10px; font-size: .82rem; line-height: 1.5;
+    max-width: 90%;
+  }
+  .chat-bubble.user {
+    background: rgba(124,58,237,.2); border: 1px solid rgba(124,58,237,.3);
+    color: var(--white); align-self: flex-end;
+  }
+  .chat-bubble.ai {
+    background: rgba(6,182,212,.1); border: 1px solid rgba(6,182,212,.25);
+    color: var(--light); align-self: flex-start;
+  }
+  .chat-label { font-size: .65rem; font-family: var(--mono); color: var(--muted); margin-bottom: .25rem; }
+  .copy-btn {
+    align-self: flex-end; background: rgba(132,204,22,.1);
+    border: 1px solid rgba(132,204,22,.3); color: var(--lime);
+    font-family: var(--mono); font-size: .72rem; padding: .35rem .8rem;
+    border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: .4rem;
+    transition: background .2s;
+  }
+  .copy-btn:hover { background: rgba(132,204,22,.2); }
+
+  /* Stats row */
+  .stats-row {
+    display: flex; gap: 1rem; flex-wrap: wrap; width: 100%; position: relative; z-index: 1;
+  }
+  .stat-card {
+    flex: 1; min-width: 80px; background: var(--deep); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.2rem 1rem; text-align: center;
+  }
+  .stat-num { font-size: 2rem; font-weight: 900; font-family: var(--mono); }
+  .stat-num.red    { color: var(--red); }
+  .stat-num.yellow { color: #F59E0B; }
+  .stat-num.green  { color: #22C55E; }
+  .stat-label { font-size: .7rem; color: var(--muted); margin-top: .25rem; font-family: var(--mono); }
+
+  /* ── SEPARATOR ─────────────────────────────────────────────── */
+  .sep {
+    height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 2rem 0;
+  }
+
+  /* ── CTA SECTION ───────────────────────────────────────────── */
+  #cta {
+    padding: 8rem 2rem; text-align: center; position: relative; overflow: hidden;
+  }
+  #cta .orb { opacity: .15; }
+  .cta-inner { position: relative; max-width: 700px; margin: 0 auto; }
+  .cta-title {
+    font-size: clamp(2.5rem, 6vw, 5rem); font-weight: 900;
+    letter-spacing: -.04em; line-height: .95; margin-bottom: 1.5rem;
+  }
+  .cta-title span {
+    background: linear-gradient(90deg, var(--violet2), var(--cyan));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .cta-desc { font-size: 1.1rem; color: var(--light); margin-bottom: 2.5rem; line-height: 1.7; }
+  .url-pill {
+    display: inline-block; background: rgba(6,182,212,.1);
+    border: 1px solid rgba(6,182,212,.3); color: var(--cyan);
+    font-family: var(--mono); font-size: .85rem; padding: .55rem 1.4rem;
+    border-radius: 100px; margin-top: 1.5rem; text-decoration: none;
+    transition: background .2s, box-shadow .2s;
+  }
+  .url-pill:hover { background: rgba(6,182,212,.2); box-shadow: 0 0 20px rgba(6,182,212,.3); }
+
+  /* ── FOOTER ────────────────────────────────────────────────── */
+  footer {
+    text-align: center; padding: 2rem; color: var(--muted);
+    font-size: .8rem; font-family: var(--mono); border-top: 1px solid var(--border);
+    position: relative; z-index: 1;
+  }
+  footer a { color: var(--violet2); text-decoration: none; }
+
+  /* ── RESPONSIVE ────────────────────────────────────────────── */
+  @media (max-width: 768px) {
+    .step-card { grid-template-columns: 1fr; gap: 2rem; }
+    .step-card.reverse { direction: ltr; }
+    .steps-wrapper { padding: 4rem 1.2rem; }
+    h1.hero-title { font-size: 2.8rem; }
+    .site-nav { display: none; }
+    .site-cards { grid-template-columns: 1fr; }
+    .stats-row .stat-card { min-width: calc(50% - .5rem); }
+    body { cursor: auto; }
+    .cursor { display: none; }
+  }
+
+  /* ── GLOW SCAN LINE ────────────────────────────────────────── */
+  .scan-glow {
+    position: absolute; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity: 0; animation: scanLine 5s 2s infinite;
+    pointer-events: none; z-index: 2;
+  }
+  @keyframes scanLine {
+    0%   { top: 0; opacity: 0; }
+    5%   { opacity: .6; }
+    95%  { opacity: .6; }
+    100% { top: 100%; opacity: 0; }
+  }
+
+  /* ── TYPED ANIMATION ───────────────────────────────────────── */
+  .type-anim { overflow: hidden; white-space: nowrap; border-right: 2px solid var(--cyan); }
+
+</style>
+</head>
+<body>
+
+<!-- Custom cursor -->
+<div class="cursor" id="cursor">
+  <div class="cursor-dot"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+</div>
+
+<!-- Progress bar -->
+<div id="progress"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Acko<span>AI</span></div>
+  <a class="nav-cta" href="https://newprojectiitp-1.onrender.com" target="_blank">Try for Free →</a>
+</nav>
+
+<!-- ── HERO ─────────────────────────────────────────────────── -->
+<section id="hero">
+  <div class="hero-bg">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+    <div class="hero-grid"></div>
+    <div class="scan-glow"></div>
+  </div>
+  <div class="hero-inner">
+    <div class="hero-badge">
+      <span class="badge-dot"></span>
+      HOW TO USE ACKOAI
+    </div>
+    <h1 class="hero-title">
+      Your Idea.
+      <span class="line2">One Prompt.</span>
+      <span class="line3">Live Website.</span>
+    </h1>
+    <p class="hero-sub">
+      No code. No tutorials. No frustration.
+      Just type what you want — AckoAI builds it in seconds.
+    </p>
+    <div class="hero-cta-row">
+      <a class="btn-primary" href="https://newprojectiitp-1.onrender.com" target="_blank">
+        ⚡ Start Building Free
+      </a>
+      <a class="btn-ghost" href="#steps">
+        📖 See How It Works
+      </a>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <div class="scroll-arrow"></div>
+    <span>SCROLL</span>
+  </div>
+</section>
+
+<!-- ── STEPS ─────────────────────────────────────────────────── -->
+<div class="steps-wrapper" id="steps">
+
+  <div class="section-label">WALKTHROUGH</div>
+  <h2 class="section-title">From zero to live<br>in under 60 seconds</h2>
+  <p class="section-desc">Follow these simple steps and watch your website come to life — no experience needed.</p>
+
+  <!-- STEP 1: The Problem -->
+  <div class="step-card" data-step>
+    <div class="step-visual">
+      <div class="step-num">01 / 08</div>
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-num red">100+</div>
+          <div class="stat-label">hrs learning</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num yellow">30+</div>
+          <div class="stat-label">complex tools</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num green">0</div>
+          <div class="stat-label">results</div>
+        </div>
+      </div>
+    </div>
+    <div class="step-text">
+      <div class="step-index">01</div>
+      <h3 class="step-heading">Sound familiar?</h3>
+      <p class="step-body">
+        You have an amazing idea for a website. But building one means learning HTML, CSS, JavaScript — endless tutorials, cryptic errors, and still nothing live to show.
+      </p>
+      <p class="step-body">
+        <strong style="color:var(--violet2)">AckoAI eliminates all of that.</strong> No setup. No courses. No code.
+      </p>
+      <div class="step-tag">🔥 The old way is broken</div>
+    </div>
+  </div>
+
+  <!-- STEP 2: Open AckoAI -->
+  <div class="step-card reverse" data-step>
+    <div class="step-visual">
+      <div class="step-num">02 / 08</div>
+      <div class="browser">
+        <div class="browser-bar">
+          <div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div>
+          <div class="url-bar">newprojectiitp-1.onrender.com</div>
+        </div>
+        <div class="browser-body">
+          <div style="text-align:center;padding:1rem 0;">
+            <div style="font-family:var(--mono);font-size:1.6rem;font-weight:700;color:var(--white);margin-bottom:.5rem;">
+              Acko<span style="color:var(--violet2)">AI</span>
+            </div>
+            <div style="font-size:.8rem;color:var(--muted);margin-bottom:1rem;">AI-Powered Website Builder</div>
+            <div style="display:inline-block;background:var(--violet);color:var(--white);font-size:.75rem;padding:.4rem 1rem;border-radius:6px;font-weight:600;">
+              Start Building →
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="step-text">
+      <div class="step-index">02</div>
+      <h3 class="step-heading">Open AckoAI</h3>
+      <p class="step-body">
+        Head to <strong style="color:var(--cyan)">newprojectiitp-1.onrender.com</strong> — no sign-up, no download, no credit card. The tool loads instantly in your browser.
+      </p>
+      <div class="step-tag">🌐 Works on any device</div>
+    </div>
+  </div>
+
+  <!-- STEP 3: Type Your Prompt -->
+  <div class="step-card" data-step>
+    <div class="step-visual">
+      <div class="step-num">03 / 08</div>
+      <div class="prompt-box">
+        <div class="prompt-label">// Your prompt →</div>
+        <div class="prompt-input">
+          <span class="typed-text" id="typeTarget"></span><span class="prompt-cursor">|</span>
+        </div>
+        <button class="prompt-send">⚡ Generate Website</button>
+      </div>
+    </div>
+    <div class="step-text">
+      <div class="step-index">03</div>
+      <h3 class="step-heading">Type your idea as a prompt</h3>
+      <p class="step-body">
+        Describe the website you want — as if you're explaining it to a friend. AckoAI understands natural language and converts your words into a fully working website.
+      </p>
+      <p class="step-body">Be as specific or as vague as you like — AckoAI handles both.</p>
+      <div class="step-tag">✍️ Natural language input</div>
+    </div>
+  </div>
+
+  <!-- STEP 4: Pro Tip Keywords -->
+  <div class="step-card reverse" data-step>
+    <div class="step-visual">
+      <div class="step-num">04 / 08</div>
+      <div style="width:100%;position:relative;z-index:1;">
+        <div style="font-family:var(--mono);font-size:.7rem;color:var(--muted);margin-bottom:.75rem;">// Use these keywords in your prompt for best results:</div>
+        <div class="keyword-pills">
+          <span class="kpill">inline CSS</span>
+          <span class="kpill">JavaScript</span>
+          <span class="kpill">responsive</span>
+          <span class="kpill">dark theme</span>
+          <span class="kpill">animations</span>
+          <span class="kpill">contact form</span>
+          <span class="kpill">hero section</span>
+          <span class="kpill">smooth scroll</span>
+        </div>
+        <div style="margin-top:1.2rem;background:#030712;border-radius:8px;padding:.9rem;border:1px solid var(--border);">
+          <div style="font-family:var(--mono);font-size:.7rem;color:var(--muted);margin-bottom:.4rem;">// Example prompt</div>
+          <div style="font-family:var(--mono);font-size:.78rem;color:var(--lime);line-height:1.6;">
+            "Create a portfolio site with <span style="color:var(--cyan)">inline CSS</span>, <span style="color:var(--cyan)">JavaScript</span> animations, <span style="color:var(--cyan)">dark theme</span>, and a contact form."
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="step-text">
+      <div class="step-index">04</div>
+      <h3 class="step-heading">Use power keywords</h3>
+      <p class="step-body">
+        For richer, more polished output, add magic keywords to your prompt like <strong style="color:var(--cyan)">inline CSS</strong> and <strong style="color:var(--cyan)">JavaScript</strong>.
+      </p>
+      <p class="step-body">
+        These signal to the AI that you want a complete, styled, interactive page — not just bare HTML.
+      </p>
+      <div class="step-tag">💡 Pro Tip</div>
+    </div>
+  </div>
+
+  <!-- STEP 5: Smart Hack – ChatGPT -->
+  <div class="step-card" data-step>
+    <div class="step-visual">
+      <div class="step-num">05 / 08</div>
+      <div class="chatgpt-flow">
+        <div>
+          <div class="chat-label">YOU → ChatGPT</div>
+          <div class="chat-bubble user">
+            "Write a detailed AckoAI prompt for a modern bakery website."
+          </div>
+        </div>
+        <div>
+          <div class="chat-label">ChatGPT →</div>
+          <div class="chat-bubble ai">
+            "Create a bakery website with inline CSS, warm color palette, hero image, menu grid, JavaScript scroll animations, and a contact form..."
+          </div>
+        </div>
+        <button class="copy-btn">📋 Copy Prompt</button>
+      </div>
+    </div>
+    <div class="step-text">
+      <div class="step-index">05</div>
+      <h3 class="step-heading">Not sure what to type?</h3>
+      <p class="step-body">
+        Use <strong style="color:var(--violet2)">ChatGPT</strong> to generate your AckoAI prompt! Ask it to write a detailed website prompt for you — then copy and paste it directly into AckoAI.
+      </p>
+      <p class="step-body">Use AI to use AI. The smartest way to get started.</p>
+      <div class="step-tag">🤖 AI × AI Hack</div>
+    </div>
+  </div>
+
+  <!-- STEP 6: Website Generates -->
+  <div class="step-card reverse" data-step>
+    <div class="step-visual">
+      <div class="step-num">06 / 08</div>
+      <div class="terminal">
+        <div class="terminal-header">
+          <div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div>
+        </div>
+        <div class="t-line"><span class="t-comment">// AckoAI is generating...</span></div>
+        <div class="t-line"><span class="t-prompt">▶ </span><span class="t-cyan">Parsing</span><span class="t-cmd"> your prompt</span></div>
+        <div class="t-line"><span class="t-prompt">▶ </span><span class="t-cyan">Generating</span><span class="t-cmd"> HTML structure</span></div>
+        <div class="t-line"><span class="t-prompt">▶ </span><span class="t-cyan">Applying</span><span class="t-cmd"> inline CSS styles</span></div>
+        <div class="t-line"><span class="t-prompt">▶ </span><span class="t-cyan">Adding</span><span class="t-cmd"> JavaScript interactions</span></div>
+        <div class="t-line" style="margin-top:.5rem;"><span class="t-out">✓ Website ready! (2.1s)</span></div>
+        <div class="t-line"><span class="t-comment">// Your site is live &nbsp;</span><span class="cursor-blink"></span></div>
+      </div>
+    </div>
+    <div class="step-text">
+      <div class="step-index">06</div>
+      <h3 class="step-heading">Watch it build in seconds</h3>
+      <p class="step-body">
+        Hit generate and AckoAI gets to work — parsing your prompt, writing the HTML, styling with CSS, and wiring up JavaScript interactions, all in one shot.
+      </p>
+      <p class="step-body">Average generation time: <strong style="color:var(--lime)">under 5 seconds.</strong></p>
+      <div class="step-tag">⚡ Instant generation</div>
+    </div>
+  </div>
+
+  <!-- STEP 7: Your Website is Ready -->
+  <div class="step-card" data-step>
+    <div class="step-visual">
+      <div class="step-num">07 / 08</div>
+      <div class="website-result">
+        <div class="site-header">
+          <span class="site-logo">MyPortfolio</span>
+          <nav class="site-nav">
+            <a href="#">About</a><a href="#">Work</a><a href="#">Contact</a>
+          </nav>
+        </div>
+        <div class="site-hero">
+          <h2>Hi, I'm a Designer 👋</h2>
+          <p>Creating beautiful digital experiences</p>
+          <span class="site-btn">View My Work →</span>
+        </div>
+        <div class="site-cards">
+          <div class="site-card"><div class="site-card-icon">🎨</div><h4>Design</h4><p>UI/UX & Branding</p></div>
+          <div class="site-card"><div class="site-card-icon">💻</div><h4>Dev</h4><p>Frontend & Apps</p></div>
+          <div class="site-card"><div class="site-card-icon">📱</div><h4>Mobile</h4><p>iOS & Android</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="step-text">
+      <div class="step-index">07</div>
+      <h3 class="step-heading">Your website is ready!</h3>
+      <p class="step-body">
+        A beautiful, complete website appears — with navigation, hero section, styled cards, and interactive elements. All from your single prompt.
+      </p>
+      <p class="step-body">
+        <strong style="color:var(--violet2)">No coding. No cost. Just your idea, turned into reality.</strong>
+      </p>
+      <div class="step-tag">🚀 Zero to live</div>
+    </div>
+  </div>
+
+  <!-- STEP 8: CTA -->
+  <div class="step-card reverse" data-step>
+    <div class="step-visual" style="justify-content:center;flex-direction:column;gap:1rem;text-align:center;">
+      <div class="step-num">08 / 08</div>
+      <div style="font-size:3.5rem;">🌐</div>
+      <div style="font-family:var(--mono);font-size:.8rem;color:var(--muted);">Your website lives at:</div>
+      <div style="background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.3);border-radius:8px;padding:.75rem 1.2rem;font-family:var(--mono);font-size:.82rem;color:var(--cyan);word-break:break-all;position:relative;z-index:1;">
+        newprojectiitp-1.onrender.com
+      </div>
+      <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;position:relative;z-index:1;">
+        <div style="background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);border-radius:6px;padding:.4rem .8rem;font-size:.75rem;color:var(--violet2);font-family:var(--mono);">⚡ Free</div>
+        <div style="background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);border-radius:6px;padding:.4rem .8rem;font-size:.75rem;color:var(--violet2);font-family:var(--mono);">🤖 AI-Powered</div>
+        <div style="background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);border-radius:6px;padding:.4rem .8rem;font-size:.75rem;color:var(--violet2);font-family:var(--mono);">⏱ Instant</div>
+      </div>
+    </div>
+    <div class="step-text">
+      <div class="step-index">08</div>
+      <h3 class="step-heading">Share it with the world</h3>
+      <p class="step-body">
+        Your website is instantly accessible. Copy the link, share it with clients, friends, or your audience — no hosting setup required.
+      </p>
+      <p class="step-body">
+        Want to tweak it? Just edit your prompt and regenerate. Iterate as many times as you like, for free.
+      </p>
+      <div class="step-tag">🎉 You're done!</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── CTA SECTION ─────────────────────────────────────────────── -->
+<section id="cta">
+  <div class="hero-bg">
+    <div class="orb orb1" style="opacity:.12"></div>
+    <div class="orb orb2" style="opacity:.12"></div>
+  </div>
+  <div class="cta-inner">
+    <div class="section-label" style="justify-content:center;margin-bottom:1.5rem;">READY?</div>
+    <h2 class="cta-title">Build your website<br><span>right now.</span></h2>
+    <p class="cta-desc">Free. Instant. No code. Just your idea and a prompt.</p>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:1rem;">
+      <a class="btn-primary" href="https://newprojectiitp-1.onrender.com" target="_blank" style="font-size:1.1rem;padding:1rem 2.5rem;">
+        👉 Start Building for Free
+      </a>
+      <a class="url-pill" href="https://newprojectiitp-1.onrender.com" target="_blank">
+        🌐 newprojectiitp-1.onrender.com
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Built with ❤️ by the <a href="https://newprojectiitp-1.onrender.com">AckoAI</a> Team &nbsp;·&nbsp; IIT Patna Capstone Project
+</footer>
+
+<script>
+  // ── CURSOR ──────────────────────────────────────────────────
+  const cursor = document.getElementById('cursor');
+  const ring   = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  function animCursor() {
+    cursor.querySelector('.cursor-dot').style.cssText = `left:${mx}px;top:${my}px`;
+    rx += (mx - rx) * .15; ry += (my - ry) * .15;
+    ring.style.cssText = `left:${rx}px;top:${ry}px`;
+    requestAnimationFrame(animCursor);
+  }
+  animCursor();
+  document.querySelectorAll('a, button').forEach(el => {
+    el.addEventListener('mouseenter', () => { ring.style.width = '54px'; ring.style.height = '54px'; ring.style.borderColor = 'var(--cyan)'; });
+    el.addEventListener('mouseleave', () => { ring.style.width = '36px'; ring.style.height = '36px'; ring.style.borderColor = 'var(--violet2)'; });
+  });
+
+  // ── PROGRESS BAR ────────────────────────────────────────────
+  const prog = document.getElementById('progress');
+  window.addEventListener('scroll', () => {
+    const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+    prog.style.width = pct + '%';
+  });
+
+  // ── SCROLL REVEAL ────────────────────────────────────────────
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('[data-step]').forEach(el => observer.observe(el));
+
+  // ── TYPEWRITER ───────────────────────────────────────────────
+  const phrases = [
+    "Create a portfolio with inline CSS and dark theme...",
+    "Build a restaurant menu page with animations...",
+    "Make a landing page for my app with JavaScript...",
+  ];
+  const target = document.getElementById('typeTarget');
+  let pi = 0, ci = 0, deleting = false;
+  function type() {
+    const phrase = phrases[pi];
+    if (!deleting) {
+      target.textContent = phrase.substring(0, ci++);
+      if (ci > phrase.length) { deleting = true; setTimeout(type, 1800); return; }
+    } else {
+      target.textContent = phrase.substring(0, ci--);
+      if (ci < 0) { deleting = false; pi = (pi + 1) % phrases.length; ci = 0; }
+    }
+    setTimeout(type, deleting ? 28 : 52);
+  }
+  type();
+
+  // ── COPY BUTTON ──────────────────────────────────────────────
+  document.querySelector('.copy-btn').addEventListener('click', function() {
+    navigator.clipboard?.writeText('Create a bakery website with inline CSS, warm color palette, hero image, menu grid, JavaScript scroll animations, and a contact form.');
+    this.textContent = '✅ Copied!';
+    setTimeout(() => this.textContent = '📋 Copy Prompt', 2000);
+  });
+
+  // ── STAGGER STEP DELAYS ──────────────────────────────────────
+  document.querySelectorAll('[data-step]').forEach((el, i) => {
+    el.style.transitionDelay = `${i * 0.05}s`;
+  });
+</script>
+</body>
+</html>
