@@ -181,6 +181,8 @@ a:hover {
 
     .container {
         margin-top: 100px;
+        position: relative;
+        z-index: 2;
     }
 }
 .bg-video {
@@ -191,6 +193,7 @@ a:hover {
     height: 100%;
     object-fit: cover;
     z-index: -1;
+    pointer-events: none;
 }
 body::after {
     content: "";
@@ -200,4 +203,5 @@ body::after {
     width: 100%;
     height: 100%;
     background: rgba(0,0,0,0.5);
+    z-index: -1;
 }

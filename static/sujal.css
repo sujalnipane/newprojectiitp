@@ -1,82 +1,75 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
-}
 body {
-    height: 100vh;
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+
+    background: #0b0613; /* deep purple-black */
+    color: #e9e5ff;
+
     display: flex;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(-45deg, #6a11cb, #2575fc, #ff6a00, #ee0979);
-    background-size: 400% 400%;
-    animation: gradientBG 8s ease infinite;
+    height: 100vh;
 }
 
-/* Animation */
-@keyframes gradientBG {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-/* 💎 Glassmorphism Login Box */
+/* 🔹 Login Box */
 .login-box {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 40px;
-    border-radius: 20px;
-    backdrop-filter: blur(15px);
+    width: 320px;
+    padding: 30px;
+    border-radius: 12px;
+
+    background: #140a24; /* purple dark */
+    border: 1px solid #2a1f4a;
+
     text-align: center;
-    color: white;
-    width: 350px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-    animation: fadeIn 1s ease;
 }
 
-/* Fade animation */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-h2 {
+/* Heading */
+.login-box h2 {
     margin-bottom: 20px;
+    font-weight: 600;
+    color: #c4b5fd;
 }
 
-/* ✨ Inputs */
-input {
+/* 🔹 Inputs */
+.login-box input {
     width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    border: none;
-    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 12px;
+
+    border-radius: 6px;
+    border: 1px solid #3b2c63;
+    background: #0f0820;
+    color: #fff;
+
     outline: none;
-    transition: 0.3s;
 }
 
-/* Focus effect */
-input:focus {
-    transform: scale(1.05);
-    box-shadow: 0 0 10px #fff;
+/* Focus */
+.login-box input:focus {
+    border-color: #8b5cf6; /* purple glow */
 }
 
-/* 🚀 Button */
-button {
+/* 🔹 Button */
+.login-box button {
     width: 100%;
-    padding: 12px;
+    padding: 10px;
+
     border: none;
-    border-radius: 10px;
-    background: #ff6a00;
+    border-radius: 6px;
+
+    background: #8b5cf6; /* main purple */
     color: white;
-    font-size: 16px;
+
+    font-weight: 600;
     cursor: pointer;
-    transition: 0.3s;
 }
 
-/* Hover effect */
-button:hover {
-    transform: scale(1.1);
-    background: #ff3d00;
-    box-shadow: 0 0 15px #ff6a00;
+/* Hover */
+.login-box button:hover {
+    background: #7c3aed;
+}
+
+/* 🔹 Subtle Shadow */
+.login-box {
+    box-shadow: 0 10px 30px rgba(139, 92, 246, 0.2);
 }
