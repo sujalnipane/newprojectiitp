@@ -3,3 +3,4 @@ gunicorn
 groq
 mysql-connector-python
 python-dotenv
+replicate
