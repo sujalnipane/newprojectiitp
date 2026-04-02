@@ -4,12 +4,12 @@ from groq import Groq
 import mysql.connector
 from dotenv import load_dotenv
 import os
-import replicate
+
 
 load_dotenv()
 
 api_key = os.getenv("GROQ_API_KEY")
-api_key2 = os.getenv("replicate_api_key")
+
 
 app = Flask(__name__)
 app.secret_key = "secret123"
