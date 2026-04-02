@@ -99,6 +99,11 @@ def logout():
 def tutorial():
     return render_template('tutorial.html')
 
+@app.route('/image-gen-widget')
+def image_gen_widget():
+    return render_template('image-gen-widget.html')
+
+
 @app.route("/generate", methods=["POST"])
 def generate():
     if "user" not in session:

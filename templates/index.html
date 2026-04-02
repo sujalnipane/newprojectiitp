@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Ackoai</title>
+    <title>akcoai</title>
     <link rel="icon" href="/static/Ackoai.png" type="image/png">
     <link rel="stylesheet" href="/static/style.css">
 </head>
@@ -15,6 +15,7 @@
     <ul class="nav-links">
         <li><a href="#">Home</a></li>
         <li><a href="/tutorial">Tutorial</a></li>
+        <li><a href="/image-gen-widget">Image Generation</a></li>
     </ul>
 
     <div class="auth-buttons">
@@ -22,6 +23,8 @@
         <a href="/signup" class="signup">Sign Up</a>
     </div>
 </nav>
+
+    
 
     <div class="container">
         <h1>🚀 AI Website Builder</h1>
@@ -31,10 +34,9 @@
             <input type="text" id="promptInput" placeholder="Describe your website...">
             <button onclick="generateWebsite()">Generate</button>
         </div>
-<br>
+        <br>
         <div><button onclick="downloadWebsite(latestCode)">Download Website ⬇️</button></div>
         <div><a href="/tutorial" target="_blank">tutorial for ackoai</a></div>
-
         <div id="status"></div>
     </div>
 
