@@ -28,7 +28,7 @@ print("Connected to MySQL ✅")
 cur = conn.cursor()
 
 client = Groq(api_key=api_key)
-replicate_client = replicate(api_key=api_key2)
+
 
 
 @app.route("/")
@@ -102,28 +102,6 @@ def logout():
 def tutorial():
     return render_template('tutorial.html')
 
-@app.route("/image")
-def image():
-    return render_template("image.html")
-
-# ⚡ Generate Image
-@app.route("/generate", methods=["POST"])
-def generate():
-    try:
-        prompt = request.form.get("prompt")
-
-        output = replicate_client.run(
-            "stability-ai/sdxl",
-            input={"prompt": prompt}
-        )
-
-        image_url = output[0]
-
-        return render_template("image.html", image=image_url)
-
-    except Exception as e:
-        print("ERROR:", e)
-        return "Error generating image"
 
 @app.route("/generate", methods=["POST"])
 def generate():
