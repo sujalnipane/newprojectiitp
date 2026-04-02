@@ -4,12 +4,12 @@ from groq import Groq
 import mysql.connector
 from dotenv import load_dotenv
 import os
-import requests,urllib.parse,random,base64
-from anthropic import Anthropic
+import replicate
 
 load_dotenv()
 
 api_key = os.getenv("GROQ_API_KEY")
+api_key2 = os.getenv("replicate_api_key")
 
 app = Flask(__name__)
 app.secret_key = "secret123"
@@ -28,7 +28,7 @@ print("Connected to MySQL ✅")
 cur = conn.cursor()
 
 client = Groq(api_key=api_key)
-anthrropic_client = Anthropic(api_key=os.getenv("anthropic_api_key"))
+replicate_client = replicate.Client(api_key=api_key2)
 
 
 @app.route("/")
@@ -97,10 +97,33 @@ def logout():
     session.pop("user", None)
     return redirect(url_for("login"))
 
+
 @app.route('/tutorial')
 def tutorial():
     return render_template('tutorial.html')
 
+@app.route("/image")
+def image():
+    return render_template("image.html")
+
+# ⚡ Generate Image
+@app.route("/generate", methods=["POST"])
+def generate():
+    try:
+        prompt = request.form.get("prompt")
+
+        output = replicate_client.run(
+            "stability-ai/sdxl",
+            input={"prompt": prompt}
+        )
+
+        image_url = output[0]
+
+        return render_template("image.html", image=image_url)
+
+    except Exception as e:
+        print("ERROR:", e)
+        return "Error generating image"
 
 @app.route("/generate", methods=["POST"])
 def generate():
