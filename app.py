@@ -102,6 +102,10 @@ def logout():
 def tutorial():
     return render_template('tutorial.html')
 
+@app.route('/image')
+def image():
+    return render_template('image.html')
+
 
 @app.route("/generate", methods=["POST"])
 def generate():
