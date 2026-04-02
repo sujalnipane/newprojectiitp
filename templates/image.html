@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Image Studio</title>
+    <link rel="stylesheet" href="/static/image.css">
+</head>
+
+<body>
+
+<div class="navbar">
+    <h2 class="logo">AckoAI 🎨</h2>
+    <a href="/" class="nav-link">Home</a>
+</div>
+
+<div class="container">
+
+    <h1 class="title">AI Image Generator</h1>
+    <p class="subtitle">Create stunning images using AI ✨</p>
+
+    <form method="POST" action="/generate">
+        <input type="text" name="prompt" class="input-box" placeholder="Enter your prompt...">
+        <br><br>
+        <button class="btn">Generate Image</button>
+    </form>
+
+    {% if image %}
+    <div class="image-box">
+        <h3>Generated Image 👇</h3>
+        <img src="{{ image }}">
+        <br><br>
+        <a href="{{ image }}" download class="download-btn">Download Image</a>
+    </div>
+    {% endif %}
+
+</div>
+
+</body>
+</html>
