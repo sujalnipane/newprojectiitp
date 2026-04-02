@@ -28,7 +28,7 @@ print("Connected to MySQL ✅")
 cur = conn.cursor()
 
 client = Groq(api_key=api_key)
-replicate_client = replicate.Client(api_key=api_key2)
+replicate_client = replicate(api_key=api_key2)
 
 
 @app.route("/")
