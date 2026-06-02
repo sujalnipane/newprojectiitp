@@ -1,95 +1,95 @@
-from flask import Flask, render_template, request, redirect, session, jsonify, url_for
-import sqlite3
-from groq import Groq
-import mysql.connector
-from dotenv import load_dotenv
 import os
-
+from flask import Flask, render_template, request, redirect, session, jsonify, url_for
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
+from groq import Groq
+from dotenv import load_dotenv
 
 load_dotenv()
 
-api_key = os.getenv("GROQ_API_KEY")
-
-
 app = Flask(__name__)
-app.secret_key = "secret123"
-def get_db():
-    return mysql.connector.connect(
-    host=os.getenv("DB_HOST"),
-    user=os.getenv("DB_USER"),
-    password=os.getenv("DB_PASSWORD"),
-    database=os.getenv("DB_NAME"),
-    port=int(os.getenv("DB_PORT",3306)),
-    ssl_disabled=False
-)
-conn=get_db()
-print("Connected to MySQL ✅")
+app.secret_key = "secret123" # Aap ise bhi .env mein daal sakte hain
 
-cur = conn.cursor()
+# --- DATABASE CONFIGURATION (SQLite) ---
+# Ye aapke project folder mein 'database.db' naam ki file bana dega
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+db = SQLAlchemy(app)
+
+# --- DATABASE MODEL ---
+class User(db.Model):
+    __tablename__ = 'users'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password = db.Column(db.String(255), nullable=False) # Hashed password ke liye
+    city = db.Column(db.String(100))
+    age = db.Column(db.Integer)
+
+# App start hote hi table automatic ban jayegi agar nahi bani hogi toh
+with app.app_context():
+    db.create_all()
+    print("SQLite Database Connected & Synced! ✅")
+
+# --- GROQ CLIENT ---
+api_key = os.getenv("GROQ_API_KEY")
 client = Groq(api_key=api_key)
 
 
+# --- ROUTES ---
 
 @app.route("/")
 def home():
     if "user" in session:
         return render_template("index.html")
-    else:
-        return redirect(url_for("signup"))
-
+    return redirect(url_for("signup"))
 
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
-    conn = get_db()
-    cur = conn.cursor()
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
         city = request.form.get("city")
         age = request.form.get("age")
 
-        cur.execute(
-            "INSERT INTO users (username, password, city, age) VALUES (%s, %s, %s, %s)",
-            (username, password, city, age)
-        )
-        conn.commit()
-        cur.close()
-        conn.close()
+        # Check if user already exists
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user:
+            return "Username already exists ❌", 400
 
-        print("Data inserted in MySQL ✅")
+        # Password securely hash karne ke liye
+        hashed_password = generate_password_hash(password)
 
-        return redirect("/login")
+        # Naya user insert karna
+        new_user = User(username=username, password=hashed_password, city=city, age=age)
+        db.session.add(new_user)
+        db.session.commit()
+
+        print(f"User {username} registered successfully in SQLite! ✅")
+        return redirect(url_for("login"))
 
     return render_template("signup.html")
-    cur.close()
-    conn.close()
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    conn = get_db()
-    cur = conn.cursor()
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
 
-        cur.execute(
-            "SELECT * FROM users WHERE username=%s AND password=%s",
-            (username, password)
-        )
-        user = cur.fetchone()
+        # Database se user find karna
+        user = User.query.filter_by(username=username).first()
 
-        if user:
+        # Password verify karna
+        if user and check_password_hash(user.password, password):
             session["user"] = username
-            return redirect("/")
+            return redirect(url_for("home"))
         else:
-            return "Invalid credentials ❌"
+            return "Invalid credentials ❌", 401
 
     return render_template("login.html")
-    cur.close()
-    conn.close()
-
 
 
 @app.route("/logout")
@@ -101,6 +101,7 @@ def logout():
 @app.route('/tutorial')
 def tutorial():
     return render_template('tutorial.html')
+
 
 @app.route('/image')
 def image():
@@ -126,7 +127,6 @@ def generate():
     )
 
     return jsonify({"result": completion.choices[0].message.content})
-
 
 
 if __name__ == "__main__":
