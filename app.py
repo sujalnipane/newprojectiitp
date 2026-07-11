@@ -4,15 +4,17 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from groq import Groq
 from dotenv import load_dotenv
+from meshapi import MeshAPI,ChatMessage,ChatCompletionParams
 
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = "secret123" # Aap ise bhi .env mein daal sakte hain
 
-# --- DATABASE CONFIGURATION (SQLite) ---
-# Ye aapke project folder mein 'database.db' naam ki file bana dega
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+# --- DATABASE CONFIGURATION (SQLite for Production/Render) ---
+import os
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'instance', 'database.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -33,8 +35,10 @@ with app.app_context():
     print("SQLite Database Connected & Synced! ✅")
 
 # --- GROQ CLIENT ---
-api_key = os.getenv("GROQ_API_KEY")
-client = Groq(api_key=api_key)
+mesh = MeshAPI(
+    base_url="https://api.meshapi.ai",
+    token=os.getenv("MESH_API_KEY")
+)
 
 
 # --- ROUTES ---
@@ -116,15 +120,19 @@ def generate():
     data = request.get_json()
     prompt = data.get("prompt")
 
-    completion = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
+    completion = mesh.chat.completions.create(
+    ChatCompletionParams(
+        model="ai21/jamba-1-5-mini-v1",
         messages=[
-            {
-                "role": "user",
-                "content": f"Create a modern HTML CSS website for: {prompt}. Only give code."
-            }
+            ChatMessage(
+                role="user",
+                content=f"Create a modern HTML CSS website for: {prompt}. Only give code."
+            )
         ]
     )
+)
+
+        
 
     return jsonify({"result": completion.choices[0].message.content})
 

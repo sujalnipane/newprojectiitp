@@ -1,20 +1,29 @@
-# Python
-_pycache_/
-*.pyc
-
-# Environment variables (IMPORTANT 🔐)
-.env
-
-# Virtual environment
+# --- Virtual Environment ---
+# Iske andar hazaron heavy files hoti hain, ise GitHub par nahi bhejte
 venv/
+ENV/
 env/
 
-# VS Code
-.vscode/
+# --- Database ---
+# Aapka SQLite database file aur uski temporary files
+instance/
+*.db
+*.sqlite3
 
-# OS files
+# --- Security & Secrets ---
+# Aapki Groq API key wali file (Ise leak nahi karna hai!)
+.env
+
+# --- Python Cache ---
+# Python run hote waqt ye temporary folders khud banata hai
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# --- VS Code & System Files ---
+# Apne editor ki personal settings ko hide rakhne ke liye
+.vscode/
 .DS_Store
 Thumbs.db
-
-# Database (optional)
-*.db
